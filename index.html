@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>책쓰샘 행운 추첨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 책 쓰는 선생님들의 페스타 부스 — 반갑고 단정하게, 화면에 띄워 함께 보는 추첨
+   IDEA: 원고지와 책갈피 — 제목은 원고지 칸에 쓰고, 룰렛은 양장본 천 색, 바늘은 책갈피 끈, 가운데는 도장
+   PICTURE: 실제로 돌아가는 양장본 룰렛판 / 명단 모드에선 원고지 칸에 이름이 써지는 추첨지
+   COLOUR/TYPE: 만년필 잉크 남색 띠, 흰 종이, 원고지 주홍 선, 도장 빨강 / Gowun Batang 제목 + Gothic A1 본문
+   LAYOUT: 잉크색 띠에 원고지 제목 → 왼쪽 룰렛, 오른쪽 대출증 모양 결과·남은 수량 → 아래 설정·명단·기록 */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#11131d);--ink:light-dark(#18204f,#e9ecff);--mute:light-dark(#5d6385,#a9aed0);--panel:light-dark(#f5f6fb,#1a1d2b);--line:light-dark(#dfe2f0,#2e3350);--band:#1d2a6b;--grid:#e8673f;--seal:#d23b2f;--hl:#ffd84d;--field:light-dark(#ffffff,#151826);--paper:light-dark(#ffffff,#f7f5ee)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Gothic A1",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,3.5vw,48px) max(4vw,16px)}
+.in{max-width:1240px;margin:0 auto}
+h1,h2,.big{font-family:"Gowun Batang",serif;font-weight:700;line-height:1.1;text-wrap:balance;margin:0}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;min-height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--field);padding:0 14px;font-weight:600}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+header.band{background:var(--band);color:#fff;padding-block:22px 24px;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px}
+header .in{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between}
+h1{display:flex;flex-wrap:wrap;gap:0;font-size:clamp(22px,3.4vw,36px)}
+.cell{width:1.6em;height:1.6em;display:grid;place-items:center;background:var(--paper);color:#18204f;border:2px solid var(--grid);margin-left:-2px;margin-top:-2px}
+.cell.sp{background:color-mix(in srgb,var(--paper) 88%,var(--grid))}
+.sub{margin:10px 0 0;opacity:.92;font-weight:600;text-wrap:balance;word-break:keep-all}
+.sub b{color:var(--hl);font-weight:800}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;background:rgba(0,0,0,.25);padding:5px;border-radius:999px}
+.tabs button{border:0;background:transparent;color:#fff;border-radius:999px;padding:0 18px}
+.tabs button[aria-pressed=true]{background:#fff;color:var(--band)}
+.stage{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(24px,3vw,44px);align-items:center}
+@media(max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+.wheelbox{position:relative;width:min(100%,600px);aspect-ratio:1;margin:10px auto 0}
+.wheelbox canvas{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 14px 18px rgba(20,25,70,.28))}
+.ribbon{position:absolute;left:50%;top:-18px;transform:translateX(-50%);width:clamp(30px,6.5%,44px);z-index:2;filter:drop-shadow(0 4px 3px rgba(0,0,0,.35))}
+.hub{position:absolute;left:50%;top:50%;width:24%;aspect-ratio:1;min-height:0;padding:0;transform:translate(-50%,-50%) rotate(-6deg);border-radius:50%;border:0;background:var(--seal);color:#fff;font:700 clamp(15px,2.5vw,26px)/1.05 "Gowun Batang",serif;white-space:nowrap;box-shadow:inset 0 0 0 clamp(3px,.6vw,5px) #fff,inset 0 0 0 clamp(5px,1vw,8px) var(--seal),0 6px 0 #8e2119,0 12px 20px rgba(0,0,0,.25);transition:transform .12s}
+.hub small{display:block;font:600 max(11px,.5em) "Gothic A1",sans-serif;opacity:.9;margin-top:.3em}
+.hub:active{transform:translate(-50%,-46%) rotate(-6deg)}
+.sheet{--pc:#b8323a;border-radius:6px;background:var(--paper);color:#18204f;min-height:clamp(300px,42vw,480px);display:grid;place-items:center;align-content:center;gap:16px;text-align:center;padding:28px 18px;border-top:14px solid var(--pc);box-shadow:0 1px 0 var(--line),0 18px 30px rgba(20,25,70,.18);background-image:linear-gradient(rgba(232,103,63,.13) 1px,transparent 1px);background-size:100% 28px}
+.dl{margin:0;display:inline-flex;gap:8px;align-items:center;background:#fff;border:1.5px solid #dfe2f0;padding:6px 16px;border-radius:999px;font-weight:600}
+.roll{display:flex;flex-wrap:wrap;justify-content:center;font-size:clamp(40px,7.5vw,92px)}
+.roll .cell{background:#fff}
+.roll.hit .cell{background:#fff6cc}
+.dn{margin:0;color:#5d6385}
+.side{display:grid;gap:18px}
+.card-r{position:relative;background:var(--paper);color:#18204f;border-radius:6px;padding:18px 22px 20px;border:1.5px solid var(--line);min-height:170px;display:grid;align-content:start;gap:8px;background-image:linear-gradient(transparent 47px,#dfe2f0 47px,#dfe2f0 48px,transparent 48px),linear-gradient(90deg,transparent 18px,rgba(232,103,63,.45) 18px,rgba(232,103,63,.45) 19.5px,transparent 19.5px)}
+.rl{margin:0 0 10px;color:#5d6385;font-weight:800;font-size:14px;letter-spacing:.02em}
+.rp{display:flex;align-items:center;word-break:keep-all;gap:12px;font-size:clamp(32px,4.4vw,50px);padding-right:84px}
+.rp .dot{width:.6em;height:.6em}
+.rw{font-size:clamp(24px,3vw,32px);color:var(--seal);margin:0}
+.empty{color:#5d6385;margin:0}
+.stamp{position:absolute;right:16px;top:44px;width:86px;height:86px;border-radius:50%;border:4px solid var(--seal);color:var(--seal);display:grid;place-items:center;font:700 26px "Gowun Batang",serif;transform:rotate(-14deg);opacity:.9;box-shadow:inset 0 0 0 3px #fff,inset 0 0 0 5px var(--seal)}
+.stamp.fresh{animation:stamp .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stamp{from{transform:rotate(-30deg) scale(2.2);opacity:0}to{transform:rotate(-14deg) scale(1);opacity:.9}}
+.dot{display:inline-block;width:14px;height:14px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
+.acts{display:grid;gap:10px}
+.go{min-height:64px;border:0;border-radius:12px;background:var(--hl);color:#2b2300;font:700 26px/1 "Gowun Batang",serif;box-shadow:0 5px 0 #c9a21a}
+.go:active{transform:translateY(3px);box-shadow:0 2px 0 #c9a21a}
+.mini{display:flex;flex-wrap:wrap;gap:8px}
+.mini button{flex:1 1 auto;font-size:15px}
+.h{font-size:24px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.h span{font:600 15px "Gothic A1",sans-serif;color:var(--mute)}
+.hint{margin:-8px 0 0;color:var(--mute);font-size:14px}
+.stock{display:grid;gap:8px}
+.srow{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(60px,1.1fr) auto;gap:12px;align-items:center;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--field);text-align:left;width:100%;min-height:52px}
+button.srow[aria-pressed=true]{border-color:var(--seal);box-shadow:0 0 0 3px color-mix(in srgb,var(--seal) 22%,transparent)}
+.sn{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:10px;background:var(--panel);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;transition:width .4s}
+.sq{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--mute);font-size:15px}
+.sq b{color:var(--ink);font-size:17px}
+.setup{background:var(--panel);border-top:1.5px solid var(--line)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:20px;align-items:start}
+.card{background:var(--bg);border-radius:12px;padding:20px;border:1.5px solid var(--line);display:grid;gap:12px}
+.card h2{font-size:22px}
+.note{margin:0;color:var(--mute);font-size:14px}
+.prow,.ph{display:grid;grid-template-columns:44px minmax(0,1fr) 80px auto;gap:8px;align-items:center}
+.ph{font-size:13px;color:var(--mute)}
+.ph span:last-child{width:52px}
+.card input:not([type=checkbox]){min-height:44px;border-radius:8px;border:1.5px solid var(--line);background:var(--field);padding:0 10px;font-size:16px;width:100%}
+.card input[type=color]{padding:3px;cursor:pointer}
+.card input[type=number]{text-align:right}
+.prow .del{padding:0 10px;font-size:14px}
+.lbl{display:grid;gap:4px;font-size:14px;font-weight:600}
+.ghost{border-style:dashed}
+.chk{display:flex;gap:10px;align-items:center;font-weight:600;min-height:44px}
+.chk input{width:22px;height:22px;accent-color:var(--band)}
+textarea{width:100%;border-radius:8px;border:1.5px solid var(--line);background:var(--field);padding:12px;font-size:16px;line-height:1.6;resize:vertical}
+.hrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.hist{margin:0;padding:0;list-style:none;display:grid;gap:6px;max-height:340px;overflow:auto}
+.hist li{display:grid;grid-template-columns:2.4em auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:8px;background:var(--panel)}
+.hist .n{color:var(--mute);font-variant-numeric:tabular-nums;text-align:right}
+.hist .t{color:var(--mute);font-size:13px;white-space:nowrap}
+.hist .who{color:var(--seal);font-weight:600}
+footer{padding:18px max(4vw,16px);color:var(--mute);font-size:13px;text-align:center;background:var(--panel)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);background:#18204f;color:#fff;padding:12px 20px;border-radius:999px;opacity:0;transition:.25s;pointer-events:none;z-index:9;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+#confetti{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:8}
+[hidden]{display:none!important}
+@media(max-width:600px){.srow{grid-template-columns:auto minmax(0,1fr) auto}.srow .bar{grid-column:1/-1;grid-row:2}.hist li{grid-template-columns:2em auto minmax(0,1fr)}.hist .t{display:none}.stamp{width:68px;height:68px;font-size:20px;top:40px}.rp{padding-right:64px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="band"><div class="in">
+  <div><h1 id="title" aria-label=""></h1><p class="sub" id="subtitle"></p></div>
+  <div class="tabs" role="group" aria-label="추첨 방식">
+    <button id="m-one" aria-pressed="true">한 명씩 뽑기</button>
+    <button id="m-two" aria-pressed="false">명단에서 당첨자 뽑기</button>
+  </div>
+</div></header>
+
+<main>
+<section class="band"><div class="in stage">
+  <div class="pic">
+    <div id="wheelWrap" class="wheelbox">
+      <svg class="ribbon" viewBox="0 0 40 92" aria-hidden="true"><path d="M2 0 H38 V90 L20 74 L2 90 Z" fill="#d23b2f"/><path d="M8 0 V80 M32 0 V80" stroke="#ffd84d" stroke-width="2" stroke-dasharray="4 4" opacity=".8"/></svg>
+      <canvas id="wheel" role="img" aria-label="상품 룰렛판"></canvas>
+      <button class="hub" id="hub" aria-label="룰렛 돌리기">책쓰샘<small>돌리기</small></button>
+    </div>
+    <div id="sheet" class="sheet" hidden>
+      <p class="dl" id="dl"></p>
+      <div class="roll" id="roll" aria-live="polite"></div>
+      <p class="dn" id="dn"></p>
+    </div>
+  </div>
+
+  <aside class="side">
+    <div class="card-r" id="result" aria-live="polite"></div>
+    <div class="acts">
+      <button class="go" id="go">룰렛 돌리기</button>
+      <div class="mini">
+        <button id="undo">방금 결과 되돌리기</button>
+        <button id="snd"></button>
+        <button id="fs">전체 화면</button>
+      </div>
+    </div>
+    <h2 class="h">남은 상품 <span id="tot"></span></h2>
+    <p class="hint" id="selHint"></p>
+    <div id="stock" class="stock"></div>
+  </aside>
+</div></section>
+
+<section class="band setup"><div class="in grid2">
+  <div class="card">
+    <h2>상품 설정</h2>
+    <p class="note">예시로 넣어 둔 상품이에요. 색·이름·수량을 바꿔 주세요.</p>
+    <div class="ph"><span>색</span><span>상품 이름</span><span>수량</span><span></span></div>
+    <div id="editor" style="display:grid;gap:8px"></div>
+    <button id="add" class="ghost">상품 추가</button>
+    <label class="chk" id="propWrap"><input type="checkbox" id="prop"> 룰렛 칸 크기를 남은 수량에 맞추기</label>
+    <p class="note">칸 크기와 상관없이 당첨 확률은 언제나 남은 수량에 비례해요. 다 나간 상품은 룰렛에서 빠져요.</p>
+  </div>
+  <div class="card">
+    <h2>화면 문구</h2>
+    <label class="lbl">원고지 제목 (12자 안팎이 보기 좋아요)<input id="tIn" maxlength="16"></label>
+    <label class="lbl">부제<input id="sIn" maxlength="60"></label>
+    <div id="namesCard" style="display:grid;gap:10px">
+      <h2 style="margin-top:8px">참가자 명단</h2>
+      <p class="note">한 줄에 한 명씩, 또는 쉼표로 구분해 붙여 넣으세요. 예시 이름이 들어 있어요. 한 번 뽑힌 사람은 다시 뽑히지 않아요.</p>
+      <textarea id="names" rows="8" aria-label="참가자 명단"></textarea>
+      <p class="note" id="ncount"></p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hrow"><h2>추첨 기록</h2>
+      <div class="mini"><button id="copy">기록 복사</button><button id="reset">처음부터 다시</button></div></div>
+    <ol id="hist" class="hist"></ol>
+  </div>
+</div></section>
+</main>
+<footer>경기독서교육연구회 책쓰샘 · 경기교육연구 페스타 2026</footer>
+
+<div id="toast" class="toast" role="status"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const T=Math.PI*2, norm=x=>((x%T)+T)%T;
+const COLORS=['#b8323a','#1f4e9c','#e0a526','#2f7d6d','#7a4a9e','#d9673a','#3d8fc4','#8a6a3d'];
+const okColor=c=>/^#[0-9a-f]{6}$/i.test(c)?c:'#999999';
+const DEF={mode:'one',prop:true,sound:true,sel:null,
+  title:'책쓰샘 행운 추첨',sub:'경기교육연구 페스타 2026 · 경기독서교육연구회 부스',
+  prizes:[
+  {id:'a',name:'책쓰샘 저자 도서',qty:5,color:'#b8323a'},
+  {id:'b',name:'책갈피 세트',qty:15,color:'#1f4e9c'},
+  {id:'c',name:'독서 노트',qty:10,color:'#e0a526'},
+  {id:'d',name:'달콤한 간식',qty:20,color:'#2f7d6d'}],
+  names:'김하늘\n이바다\n박서준\n최지우\n정다온\n강민호\n윤채원\n장도윤\n임하린\n한지호\n오세아\n서유진',
+  hist:[]};
+let S=null;
+try{S=JSON.parse(localStorage.getItem('chaek-raffle-v1'))}catch(e){}
+if(!S||!Array.isArray(S.prizes)||!Array.isArray(S.hist))S=JSON.parse(JSON.stringify(DEF));
+const save=()=>{try{localStorage.setItem('chaek-raffle-v1',JSON.stringify(S))}catch(e){}};
+const used=id=>S.hist.filter(h=>h.pid===id).length;
+const left=p=>Math.max(0,(+p.qty||0)-used(p.id));
+const nameList=()=>[...new Set(S.names.split(/[\n,]/).map(s=>s.trim()).filter(Boolean))];
+const pool=()=>{const won=new Set(S.hist.filter(h=>h.who).map(h=>h.who));return nameList().filter(n=>!won.has(n))};
+const ink=c=>{const n=parseInt(okColor(c).slice(1),16),r=n>>16,g=n>>8&255,b=n&255;return (r*299+g*587+b*114)/1000>150?'#1b1a10':'#ffffff'};
+const cells=t=>[...String(t)].map(ch=>ch.trim()?`<span class="cell">${esc(ch)}</span>`:'<span class="cell sp"></span>').join('');
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let spinning=false,fresh=false;
+
+let tt;const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2200)};
+
+let ac=null;
+const tone=(f,d,type,v)=>{if(!S.sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=type||'square';o.frequency.value=f;g.gain.setValueAtTime(v||.04,ac.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}};
+const tick=()=>tone(1000,.035,'square',.03);
+const fanfare=()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,i===3?.5:.18,'triangle',.09),i*120));
+
+/* wheel: 양장본 천 색 칸 + 실 박음질 테두리 */
+const cv=$('#wheel'),ctx=cv.getContext('2d'),box=$('#wheelWrap');
+let W=0,dpr=1,rot=0,SEG=[];
+const segs=()=>{const ps=S.prizes.filter(p=>left(p)>0);const ws=ps.map(p=>S.prop?left(p):1);const tot=ws.reduce((a,b)=>a+b,0);let a=0;return ps.map((p,i)=>{const span=ws[i]/tot*T;const s={p,start:a,span};a+=span;return s})};
+function draw(){
+  if(!W)return;const r=W/2,R=r*.87;
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,W);
+  ctx.beginPath();ctx.arc(r,r,r-1,0,T);ctx.fillStyle='#1d2a6b';ctx.fill();
+  ctx.setLineDash([W*.018,W*.014]);ctx.lineWidth=Math.max(1.5,W/320);ctx.strokeStyle='#f3e6c4';
+  ctx.beginPath();ctx.arc(r,r,r*.945,0,T);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.arc(r,r,R+W*.012,0,T);ctx.fillStyle='#fbf8ef';ctx.fill();
+  if(!SEG.length){
+    ctx.beginPath();ctx.arc(r,r,R,0,T);ctx.fillStyle='#eef0f8';ctx.fill();
+    ctx.fillStyle='#5d6385';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`700 ${W*.045}px "Gowun Batang", serif`;
+    ctx.fillText('상품이 모두 나갔어요',r,r+W*.21);
+  }
+  SEG.forEach(s=>{
+    const a0=rot+s.start,a1=a0+s.span;
+    ctx.beginPath();ctx.moveTo(r,r);ctx.arc(r,r,R,a0,a1);ctx.closePath();
+    ctx.fillStyle=okColor(s.p.color);ctx.fill();
+    if(SEG.length>1){ctx.strokeStyle='#fbf8ef';ctx.lineWidth=Math.max(2,W/170);ctx.stroke()}
+    if(s.span>.16){
+      ctx.save();ctx.translate(r,r);ctx.rotate(a0+s.span/2);
+      ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillStyle=ink(s.p.color);
+      let fs=Math.max(11,Math.min(W*.055,s.span*R*.5));const maxW=R*.58;
+      ctx.font=`700 ${fs}px "Gowun Batang", serif`;
+      const tw=ctx.measureText(String(s.p.name)).width;
+      if(tw>maxW){fs=Math.max(11,fs*maxW/tw);ctx.font=`700 ${fs}px "Gowun Batang", serif`}
+      let t=String(s.p.name),cut=false;
+      while(t.length>1&&ctx.measureText(t).width>maxW){t=t.slice(0,-1);cut=true}
+      ctx.fillText(cut?t+'…':t,R-W*.04,0);ctx.restore();
+    }
+  });
+}
+const refresh=()=>{if(!spinning){SEG=segs();draw()}};
+const ro=new ResizeObserver(()=>{W=box.clientWidth;dpr=window.devicePixelRatio||1;cv.width=Math.round(W*dpr);cv.height=Math.round(W*dpr);draw()});
+ro.observe(box);
+if(document.fonts)document.fonts.ready.then(draw);
+const under=()=>{const a=norm(-Math.PI/2-rot);const s=SEG.find(s=>a>=s.start&&a<s.start+s.span);return s?s.p.id:null};
+
+function spin(){
+  if(spinning)return;SEG=segs();
+  if(!SEG.length){draw();toast('남은 상품이 없어요. 수량을 늘리거나 처음부터 다시 시작하세요.');return}
+  const tot=SEG.reduce((a,s)=>a+left(s.p),0);let x=Math.random()*tot,pick=SEG[SEG.length-1];
+  for(const s of SEG){x-=left(s.p);if(x<0){pick=s;break}}
+  const a=pick.start+pick.span*(.12+Math.random()*.76);
+  let target=-Math.PI/2-a;const base=rot+T*(RM?1:6);target+=T*Math.ceil((base-target)/T);
+  const from=rot,dur=RM?900:5200,t0=performance.now();let last=under();
+  spinning=true;setBusy(true);
+  const step=now=>{const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,4);rot=from+(target-from)*e;draw();
+    const u=under();if(u!==last){last=u;tick()}
+    if(k<1)requestAnimationFrame(step);else{rot=norm(rot);spinning=false;finish(pick.p,null)}};
+  requestAnimationFrame(step);
+}
+
+function drawName(){
+  if(spinning)return;const p=S.prizes.find(p=>p.id===S.sel);
+  if(!p||left(p)<=0){toast('오른쪽 목록에서 뽑을 상품을 먼저 골라 주세요.');return}
+  const pl=pool();if(!pl.length){toast('아직 뽑히지 않은 사람이 없어요. 명단을 확인해 주세요.');return}
+  const win=pl[Math.floor(Math.random()*pl.length)],roll=$('#roll');
+  spinning=true;setBusy(true);roll.classList.remove('hit');
+  let delay=RM?0:45,prev='';
+  const step=()=>{
+    if(delay>380||RM||pl.length===1){roll.innerHTML=cells(win);roll.classList.add('hit');spinning=false;finish(p,win);return}
+    let n=pl[Math.floor(Math.random()*pl.length)];if(n===prev&&pl.length>1)n=pl[(pl.indexOf(n)+1)%pl.length];
+    prev=n;roll.innerHTML=cells(n);tick();delay*=1.1;setTimeout(step,delay)};
+  step();
+}
+
+function finish(p,who){
+  S.hist.push({pid:p.id,name:p.name,color:okColor(p.color),who:who||'',t:Date.now()});save();
+  fresh=true;fanfare();confetti([okColor(p.color),'#ffd84d','#ffffff','#d23b2f','#1d2a6b']);setBusy(false);render();
+  if(S.mode==='two')renderSheet(true);
+}
+const go=()=>S.mode==='one'?spin():drawName();
+function setBusy(b){['#go','#hub','#undo','#reset'].forEach(s=>$(s).disabled=b)}
+
+const cf=$('#confetti'),cx=cf.getContext('2d');let parts=[],cfOn=false;
+function confetti(cols){
+  if(RM)return;cf.width=innerWidth;cf.height=innerHeight;
+  for(let i=0;i<160;i++)parts.push({x:innerWidth*(.3+Math.random()*.4),y:innerHeight*.4,vx:(Math.random()-.5)*15,vy:-Math.random()*15-5,s:7+Math.random()*7,c:cols[i%cols.length],r:Math.random()*6,vr:(Math.random()-.5)*.3});
+  if(!cfOn){cfOn=true;requestAnimationFrame(cfStep)}
+}
+function cfStep(){
+  cx.clearRect(0,0,cf.width,cf.height);
+  parts.forEach(p=>{p.vy+=.3;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s*.35,p.s,p.s*.7);cx.restore()});
+  parts=parts.filter(p=>p.y<cf.height+30);
+  if(parts.length)requestAnimationFrame(cfStep);else{cfOn=false;cx.clearRect(0,0,cf.width,cf.height)}
+}
+
+const hm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+function renderHead(){
+  const t=S.title||DEF.title;$('#title').innerHTML=cells(t);$('#title').setAttribute('aria-label',t);
+  $('#subtitle').textContent=S.sub||'';document.title=t;
+}
+function renderResult(){
+  const h=S.hist[S.hist.length-1],el=$('#result');
+  if(!h){el.innerHTML=`<p class="rl">행운 대출증</p><p class="empty">${S.mode==='one'?'가운데 <b>도장</b>이나 아래 노란 버튼을 누르세요. 스페이스바로도 돌릴 수 있어요.':'오른쪽 아래에서 상품을 고르고 <b>당첨자 뽑기</b>를 누르세요.'}</p>`;return}
+  el.innerHTML=`<p class="rl">행운 대출증 · No. ${S.hist.length}</p>
+    <div class="rp"><span class="dot" style="background:${okColor(h.color)}"></span><span class="big">${esc(h.name)}</span></div>
+    ${h.who?`<p class="rw big">${esc(h.who)} 선생님</p>`:''}
+    <span class="stamp${fresh?' fresh':''}" aria-hidden="true">당첨</span>`;
+  fresh=false;
+}
+function renderStock(){
+  const two=S.mode==='two';
+  const totL=S.prizes.reduce((a,p)=>a+left(p),0),totQ=S.prizes.reduce((a,p)=>a+(+p.qty||0),0);
+  $('#tot').textContent=`${totL}개 / 전체 ${totQ}개`;
+  $('#selHint').textContent=two?'뽑을 상품을 눌러 고르세요. 작은 상품부터 뽑고 큰 상품을 마지막에 뽑으면 더 재미있어요.':'';
+  $('#selHint').hidden=!two;
+  $('#stock').innerHTML=S.prizes.map(p=>{
+    const l=left(p),q=+p.qty||0,w=q?l/q*100:0,c=okColor(p.color);
+    const inner=`<span class="dot" style="background:${c}"></span><span class="sn">${esc(p.name)}</span><span class="bar"><i style="width:${w}%;background:${c}"></i></span><span class="sq"><b>${l}</b> / ${q}</span>`;
+    return two?`<button class="srow" data-id="${esc(p.id)}" aria-pressed="${S.sel===p.id}" ${l?'':'disabled'}>${inner}</button>`:`<div class="srow">${inner}</div>`;
+  }).join('');
+}
+function renderSheet(keep){
+  const p=S.prizes.find(p=>p.id===S.sel),d=$('#sheet');
+  d.style.setProperty('--pc',p?okColor(p.color):'#1d2a6b');
+  $('#dl').innerHTML=p?`<span class="dot" style="background:${okColor(p.color)}"></span>이번 상품 · ${esc(p.name)} (${left(p)}개 남음)`:'상품을 골라 주세요';
+  $('#dn').textContent=`아직 안 뽑힌 사람 ${pool().length}명`;
+  if(!keep){$('#roll').innerHTML=cells('누구일까요');$('#roll').classList.remove('hit')}
+}
+function renderHist(){
+  const el=$('#hist');
+  if(!S.hist.length){el.innerHTML='<li style="display:block;color:var(--mute)">아직 추첨 기록이 없어요.</li>';return}
+  el.innerHTML=S.hist.map((h,i)=>`<li><span class="n">${i+1}</span><span class="dot" style="background:${okColor(h.color)}"></span><span>${esc(h.name)}${h.who?` · <span class="who">${esc(h.who)}</span>`:''}</span><span class="t">${hm(h.t)}</span></li>`).reverse().join('');
+}
+function renderEditor(){
+  $('#editor').innerHTML=S.prizes.map(p=>`<div class="prow" data-id="${esc(p.id)}">
+    <input type="color" value="${okColor(p.color)}" aria-label="${esc(p.name)} 색">
+    <input class="pn" value="${esc(p.name)}" maxlength="24" aria-label="상품 이름">
+    <input class="pq" type="number" min="0" max="999" inputmode="numeric" value="${+p.qty||0}" aria-label="${esc(p.name)} 수량">
+    <button class="del" ${S.prizes.length<=2?'disabled':''} aria-label="${esc(p.name)} 삭제">삭제</button></div>`).join('');
+  $('#add').disabled=S.prizes.length>=8;
+}
+function renderMode(){
+  const two=S.mode==='two';
+  $('#m-one').setAttribute('aria-pressed',!two);$('#m-two').setAttribute('aria-pressed',two);
+  $('#wheelWrap').hidden=two;$('#sheet').hidden=!two;$('#namesCard').hidden=!two;
+  $('#propWrap').hidden=two;$('#go').textContent=two?'당첨자 뽑기':'룰렛 돌리기';
+  $('#prop').checked=!!S.prop;
+  $('#snd').textContent=S.sound?'소리 켜짐':'소리 꺼짐';$('#snd').setAttribute('aria-pressed',!!S.sound);
+}
+function renderNames(){$('#ncount').textContent=`명단 ${nameList().length}명 · 아직 안 뽑힌 사람 ${pool().length}명`}
+function render(){renderHead();renderMode();renderResult();renderStock();renderHist();renderNames();if(S.mode==='two')renderSheet(true);refresh()}
+
+const setMode=m=>{if(spinning)return;S.mode=m;if(m==='two'&&!S.prizes.some(p=>p.id===S.sel&&left(p)>0)){const f=S.prizes.find(p=>left(p)>0);S.sel=f?f.id:null}save();render();if(m==='two')renderSheet(false)};
+$('#m-one').onclick=()=>setMode('one');$('#m-two').onclick=()=>setMode('two');
+$('#go').onclick=go;$('#hub').onclick=go;
+$('#stock').addEventListener('click',e=>{const b=e.target.closest('button.srow');if(!b||spinning)return;S.sel=b.dataset.id;save();renderStock();renderSheet(false)});
+$('#undo').onclick=()=>{if(spinning)return;if(!S.hist.length){toast('되돌릴 결과가 없어요.');return}const h=S.hist.pop();save();render();if(S.mode==='two')renderSheet(false);toast(`${h.name}${h.who?' · '+h.who:''} 결과를 되돌렸어요.`)};
+$('#snd').onclick=()=>{S.sound=!S.sound;save();renderMode();if(S.sound)tick()};
+$('#fs').onclick=()=>{try{const p=document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();if(p&&p.catch)p.catch(()=>toast('이 화면에서는 전체 화면을 쓸 수 없어요.'))}catch(e){toast('이 화면에서는 전체 화면을 쓸 수 없어요.')}};
+$('#prop').onchange=e=>{S.prop=e.target.checked;save();refresh()};
+$('#tIn').value=S.title||'';$('#sIn').value=S.sub||'';$('#names').value=S.names;
+$('#tIn').addEventListener('input',e=>{S.title=e.target.value;save();renderHead()});
+$('#sIn').addEventListener('input',e=>{S.sub=e.target.value;save();renderHead()});
+$('#names').addEventListener('input',e=>{S.names=e.target.value;save();renderNames();if(S.mode==='two')renderSheet(true)});
+$('#editor').addEventListener('input',e=>{
+  const row=e.target.closest('.prow');if(!row)return;const p=S.prizes.find(p=>p.id===row.dataset.id);if(!p)return;
+  if(e.target.type==='color')p.color=okColor(e.target.value);
+  else if(e.target.classList.contains('pn'))p.name=e.target.value.trim()||'이름 없는 상품';
+  else if(e.target.classList.contains('pq'))p.qty=Math.max(0,Math.min(999,parseInt(e.target.value,10)||0));
+  save();renderStock();renderResult();if(S.mode==='two')renderSheet(true);refresh();
+});
+$('#editor').addEventListener('click',e=>{
+  const b=e.target.closest('.del');if(!b||spinning||S.prizes.length<=2)return;
+  const id=b.closest('.prow').dataset.id;S.prizes=S.prizes.filter(p=>p.id!==id);if(S.sel===id)S.sel=null;save();renderEditor();render();
+});
+$('#add').onclick=()=>{if(S.prizes.length>=8)return;const n=S.prizes.length;S.prizes.push({id:'p'+Date.now().toString(36),name:`상품 ${n+1}`,qty:5,color:COLORS[n%COLORS.length]});save();renderEditor();render()};
+$('#copy').onclick=()=>{
+  if(!S.hist.length){toast('복사할 기록이 없어요.');return}
+  const txt=`${S.title||''} 추첨 기록\n`+S.hist.map((h,i)=>`${i+1}. ${h.name}${h.who?' - '+h.who:''} (${hm(h.t)})`).join('\n');
+  try{navigator.clipboard.writeText(txt).then(()=>toast('추첨 기록을 복사했어요.'),()=>toast('복사가 막혀 있어요.'))}catch(e){toast('복사가 막혀 있어요.')}
+};
+let rs=null;
+$('#reset').onclick=()=>{
+  if(spinning)return;const b=$('#reset');
+  if(!rs){b.textContent='한 번 더 누르면 기록이 지워져요';rs=setTimeout(()=>{rs=null;b.textContent='처음부터 다시'},3000);return}
+  clearTimeout(rs);rs=null;b.textContent='처음부터 다시';S.hist=[];save();render();if(S.mode==='two')renderSheet(false);toast('기록을 지우고 상품 수량을 처음으로 되돌렸어요.');
+};
+document.addEventListener('keydown',e=>{
+  const tag=document.activeElement&&document.activeElement.tagName;
+  if(e.code==='Space'&&!['INPUT','TEXTAREA','BUTTON','SELECT'].includes(tag)){e.preventDefault();go()}
+});
+
+renderEditor();render();if(S.mode==='two')renderSheet(false);
+}
+</script>
+</body>
+</html>
