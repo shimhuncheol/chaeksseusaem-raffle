@@ -201,12 +201,13 @@ const T=Math.PI*2,rnd=Math.random,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const okC=c=>/^#[0-9a-f]{6}$/i.test(c)?c:'#999999';
 const KEY='chaek-plinko-v1';
-const DEF={sound:true,rows:12,pA:20,title:'책쓰샘 행운 추첨',sub:'구슬을 떨어뜨려 도서 또는 간식을 받아 가세요!',
+const DEF={dv:2,sound:true,rows:12,pA:10,title:'책쓰샘 행운 추첨',sub:'구슬을 떨어뜨려 도서 또는 간식을 받아 가세요!',
   prizes:[{id:'book',name:'책쓰샘 저자 도서',short:'도서',qty:5,unl:false,color:'#e23b2e'},
           {id:'snack',name:'달콤한 간식',short:'간식',qty:0,unl:true,color:'#1f8a8a'}],hist:[]};
 let S=null;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!Array.isArray(S.prizes)||S.prizes.length!==2||!Array.isArray(S.hist))S=JSON.parse(JSON.stringify(DEF));
+if(S.dv!==2){S.pA=10;S.dv=2}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const used=id=>S.hist.filter(h=>h.pid===id).length;
 const left=p=>p.unl?Infinity:Math.max(0,(+p.qty||0)-used(p.id));
@@ -216,7 +217,7 @@ const lum=c=>{const n=parseInt(okC(c).slice(1),16);return((n>>16)*299+((n>>8)&25
 const mix=(c,t,a)=>{const n=parseInt(okC(c).slice(1),16),m=parseInt(t.slice(1),16);const f=s=>Math.round(((n>>s)&255)*(1-a)+((m>>s)&255)*a);return`rgb(${f(16)},${f(8)},${f(0)})`};
 const ballHTML=(c,txt,cls)=>`<span class="ball ${cls||''}" style="--c:${okC(c)}">${esc(txt)}</span>`;
 const A=()=>S.prizes[0],B=()=>S.prizes[1];
-function probA(){const a=avail(A()),b=avail(B());if(!a&&!b)return null;if(!a)return 0;if(!b)return 100;return clamp(+S.pA||20,1,95)}
+function probA(){const a=avail(A()),b=avail(B());if(!a&&!b)return null;if(!a)return 0;if(!b)return 100;return clamp(+S.pA||10,1,95)}
 
 $('#stars').innerHTML=Array.from({length:22},()=>{const z=10+rnd()*26;return`<i style="left:${rnd()*100}%;top:${rnd()*100}%;width:${z}px;height:${z}px;--d:${1.2+rnd()*2.4}s;animation-delay:${-rnd()*3}s"></i>`}).join('');
 
@@ -416,11 +417,11 @@ function renderEditor(){
     <div class="pe2"><label class="lbl">칸 글자 (4자까지)<input class="ps" value="${esc(p.short||'')}" maxlength="4"></label>
     <label class="lbl">수량<input class="pq" type="number" min="0" max="999" inputmode="numeric" value="${+p.qty||0}" ${p.unl?'disabled':''}></label>
     <label class="chk"><input type="checkbox" class="pu" ${p.unl?'checked':''}> 무제한</label></div></div>`).join('');
-  $('#pA').value=clamp(+S.pA||20,1,95);renderPText();
+  $('#pA').value=clamp(+S.pA||10,1,95);renderPText();
   $('#seg').innerHTML=[8,10,12,14].map(n=>`<button data-n="${n}" aria-pressed="${+S.rows===n}">${n}줄</button>`).join('');
   $('#tIn').value=S.title||'';$('#sIn').value=S.sub||'';
 }
-function renderPText(){const v=clamp(+S.pA||20,1,95);$('#pText').textContent=`${A().name} ${v}% · ${B().name} ${100-v}%`}
+function renderPText(){const v=clamp(+S.pA||10,1,95);$('#pText').textContent=`${A().name} ${v}% · ${B().name} ${100-v}%`}
 function render(fresh){renderHead();renderOdds();renderBalls(fresh);renderHist();renderSnd()}
 
 /* 이벤트 */
