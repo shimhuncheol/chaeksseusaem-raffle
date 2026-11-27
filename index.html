@@ -8,7 +8,7 @@
 /* VOICE: 레트로 오픈 이벤트 포스터 — 신나고 촌스럽게 화려하게, 멀리서도 한눈에
    IDEA: 오락실 구슬 판(플링코) — 금빛 구슬이 핀을 튕기며 내려와 '도서'와 '간식' 칸 중 하나에 쏙
    PICTURE: 전구 두른 갈색 오락기 판, 크림색 핀, 빨강·청록 도착 칸, 마지막 순간 슬로모션과 당첨 연출
-   COLOUR/TYPE: 은은한 파스텔 분홍·버터 바탕, 겨자·크림·짙은 갈색 판, 핑크 포인트 / 페이퍼로지 한 가족
+   COLOUR/TYPE: 은은한 파스텔 분홍 단색 바탕, 겨자·크림·짙은 갈색 판, 핑크 포인트 / 페이퍼로지 한 가족
    LAYOUT: 위 기울어진 제목·리본 → 큰 구슬 판과 오른쪽 버튼·확률·최근 결과 → 수정은 오른쪽 서랍 */
 @font-face{font-family:Paperlogy;src:url(fonts/Paperlogy-4Regular.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:Paperlogy;src:url(fonts/Paperlogy-6SemiBold.woff2) format("woff2");font-weight:600;font-display:swap}
@@ -16,9 +16,9 @@
 @font-face{font-family:Paperlogy;src:url(fonts/Paperlogy-9Black.woff2) format("woff2");font-weight:900;font-display:swap}
 :root{color-scheme:light;--red:#d8252e;--red2:#a8141d;--mus:#f2b632;--cream:#fff3d6;--brown:#2b130b;--pink:#ff4fa3;--mute:#e9cfa6;--F:Paperlogy,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
 *{box-sizing:border-box;min-width:0}
-html{background:#ffdede}
+html{background:#ffe6e2}
 body{margin:0;min-height:100vh;color:var(--cream);font:600 16px/1.55 var(--F);overflow-x:clip;
-  background:radial-gradient(circle at 1px 1px,rgba(43,19,11,.06) 1.2px,transparent 1.6px) 0 0/11px 11px,repeating-conic-gradient(from 0deg at 28% 30%,rgba(255,255,255,.32) 0 7deg,transparent 7deg 15deg),linear-gradient(152deg,#ffdede 0 54%,#fff1c9 54% 100%);background-attachment:fixed}
+  background:#ffe6e2}
 h1,h2,.big{font-family:var(--F);font-weight:900;line-height:1.05;margin:0;text-wrap:balance}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;min-height:44px;border-radius:12px;border:2.5px solid var(--mus);background:var(--brown);color:var(--cream);padding:0 14px;font-weight:800;box-shadow:3px 3px 0 rgba(43,19,11,.45)}
@@ -66,10 +66,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .mini{display:flex;flex-wrap:wrap;gap:8px}
 .mini button{flex:1 1 auto;font-size:15px}
 .foot{margin-top:26px;text-align:center;color:#7a4a3a;font-size:13px;font-weight:800}
-.win{position:fixed;inset:0;z-index:50;display:grid;place-items:center;overflow:hidden;cursor:pointer;background:repeating-conic-gradient(from 0deg at 50% 50%,#ffe6e1 0 9deg,#ffd8d2 9deg 18deg)}
-.win.jack{background:repeating-conic-gradient(from 0deg at 50% 50%,#fff4cc 0 9deg,#ffe3c2 9deg 18deg)}
-.win::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 1px 1px,rgba(43,19,11,.06) 1.2px,transparent 1.6px) 0 0/11px 11px,radial-gradient(circle,transparent 35%,rgba(255,190,200,.35) 100%)}
-.wrays{position:absolute;left:50%;top:50%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.6) 0 7deg,transparent 7deg 18deg);-webkit-mask:radial-gradient(circle,#000 8%,transparent 50%);mask:radial-gradient(circle,#000 8%,transparent 50%);animation:spin 12s linear infinite}
+.win{position:fixed;inset:0;z-index:50;display:grid;place-items:center;overflow:hidden;cursor:pointer;background:#ffe6e2}
+.win.jack{background:#fff2cc}
 @keyframes spin{to{transform:rotate(360deg)}}
 .wcard{position:relative;text-align:center;display:grid;justify-items:center;gap:14px;padding:20px;animation:card .8s cubic-bezier(.2,1.6,.4,1)}
 @keyframes card{from{transform:scale(.2) rotate(-8deg);opacity:0}}
@@ -155,7 +153,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </div>
 
 <div class="win" id="win" hidden role="dialog" aria-modal="true" aria-label="당첨 결과">
-  <div class="wrays"></div>
   <div class="wcard" id="wcard"></div>
 </div>
 <div class="flash" id="flash"></div>
