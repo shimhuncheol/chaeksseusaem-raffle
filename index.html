@@ -55,7 +55,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 @keyframes pop{from{transform:scale(0) rotate(-180deg)}}
 .empty{color:var(--mute);margin:0;font-size:15px}
 .odds{display:grid;gap:10px}
-.orow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:12px;row-gap:6px;align-items:center;padding:10px 12px;border-radius:12px;border:2px solid #6b4a2a;background:rgba(255,243,214,.05)}
+.orow{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:12px;row-gap:6px;align-items:center;padding:10px 12px;border-radius:12px;border:2px solid #6b4a2a;background:rgba(255,243,214,.05)}
 .orow .ball{grid-row:1/3}
 .on{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .on small{display:block;font-weight:600;color:var(--mute);font-size:13px}
@@ -137,7 +137,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <aside class="side">
       <button class="go" id="go">구슬 떨어뜨리기!<small>스페이스바를 누르거나 판을 눌러도 돼요</small></button>
       <div class="card">
-        <h2>당첨 확률</h2>
+        <h2>오늘의 상품</h2>
         <div class="odds" id="odds"></div>
       </div>
       <div class="card">
@@ -399,9 +399,9 @@ const hm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'
 function renderHead(){const t=S.title||DEF.title;$('#title').textContent=t;$('#subtitle').textContent=S.sub||'';document.title=t}
 function renderOdds(){
   const pa=probA();
-  $('#odds').innerHTML=S.prizes.map((p,i)=>{const pct=pa===null?0:(i===0?pa:100-pa),q=+p.qty||0,l=left(p),w=p.unl?100:(q?l/q*100:0);
+  $('#odds').innerHTML=S.prizes.map((p,i)=>{const q=+p.qty||0,l=left(p),w=p.unl?100:(q?l/q*100:0);
     const sub=p.unl?'무제한':`남은 수량 ${l} / ${q}`;
-    return`<div class="orow ${avail(p)?'':'soldout'}">${ballHTML(p.color,shortOf(p))}<span class="on">${esc(p.name)}<small>${avail(p)?sub:'모두 나갔어요'}</small></span><span class="pct">${pct}%</span><span class="bar"><i style="width:${w}%"></i></span></div>`}).join('');
+    return`<div class="orow ${avail(p)?'':'soldout'}">${ballHTML(p.color,shortOf(p))}<span class="on">${esc(p.name)}<small>${avail(p)?sub:'모두 나갔어요'}</small></span><span class="bar"><i style="width:${w}%"></i></span></div>`}).join('');
 }
 function renderBalls(fresh){
   const h=S.hist.slice(-14).reverse();$('#cnt').textContent=S.hist.length?`총 ${S.hist.length}회`:'';
